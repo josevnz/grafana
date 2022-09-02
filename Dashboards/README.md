@@ -139,9 +139,9 @@ But it gets better, as the project also made an [OpenAPI definition](https://git
 
 So before we got and start writing any code to serve our Ansible inventory file contents, let's see put together some fake data with our Grafana datasource.
 
-### Using Mockoon
+### Using Mockoon CLI
 
-[Mockoon cli](https://mockoon.com/cli/) promises to make this very easy for us, specially if it can import an OpenAPI file.
+The [Mockoon cli](https://mockoon.com/cli/) promises to make this very easy for us, specially if it can import an OpenAPI file; this will make it very easy to see how the structure of each of the JSON endpoints look like.
 
 For our demonstration, we will use a podman container (which is also a very convenient way to run mockoon):
 
@@ -184,10 +184,34 @@ So what kind of data we can get back for each one of the endpoints? Let's exerci
 
 Note than _the mock is returning static responses as expected_, so the payload passed to the POST method (--data) it is meaningless.
 
-And next step is to add our new datasource in Grafana:
+
+Next step is to add our new datasource in Grafana:
 
 ![](fake_datasource.png)
 
 
+Now that we know how the data should look like, we can create fake responses that look more like our Ansible inventory file contents.
 
+For now stop the mockoon/cli container:
+```shell
+podman stop fake_json
+```
 
+## Faking it until it works, using Mockoon GUI
+
+Let's install and run the mockoon GUI:
+```shell
+
+[josevnz@dmaf5 grafana]$ sudo dnf install -y https://github.com/mockoon/mockoon/releases/download/v1.20.0/mockoon-1.20.0.rpm
+...
+Installed:
+  mockoon-1.20.0-1.x86_64                                                                                                                                                                                                                                
+
+Complete!
+mockoon
+```
+It will look like something like this:
+
+![](running_mockoon_gui.png)
+
+After experimenting with the GUI and following the excellent documentation (specially the templating part) I ended creating a Mockoon REST mock. 
