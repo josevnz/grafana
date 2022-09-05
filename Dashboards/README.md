@@ -4,7 +4,6 @@ You probably know that Grafana has excellent integration with Prometheus exporte
 
 Now imaging that you also have your hosts organized in logical groups and for sake of argument you have a nice Ansible inventory file where you keep your hosts organized:
 
-
 ````yaml
 ---
 # Inventory host for a fictional network for the Nunez Barrios family
@@ -101,18 +100,50 @@ And our Ansible playbooks will get access to this inventory like this:
 
 Normally [Ansible inventory files](https://www.redhat.com/sysadmin/ansible-dynamic-inventories) are well maintained and kept on a source control repository like Git, or they are generated dynamically; In this tutorial I'll show you how to filter hosts by group in your Grafana dashboard using variables, and we will see how to populate those variables from our Ansible host inventory file (taking advantage of the groups).
 
+By the time you are done reading this tutorial you will have learned about the following:
 
-## Adding the simpod-json-datasource
+* Install plugins in Grafana, running inside a Podman container
+* Create mock REST api endpoints to simulate a webservice, for quick prototyping using Mockoon
+* Connect the mock REST API with Grafana to populate missing values on a Panel that uses Prometheus data for monitoring
+* And finally writing a simple webservice to provide to static host inventory file through a REST endpoint to Grafana. 
 
-In order to get data from custom JSON datasource, you may use the [simpod-json-datasource](https://grafana.com/grafana/plugins/simpod-json-datasource/) plugin.
+What you will need for this tutorial:
+* A basic knowledge of [Ansible inventories](https://www.redhat.com/sysadmin/ansible-dynamic-inventories) (not require but never hurts)
+* A Fedora or RPM based distribution, with elevated privileges (like [SUDO](https://www.sudo.ws/))
+* A working [Podman](https://docs.podman.io/en/latest/index.html) [installation](https://www.redhat.com/sysadmin/automate-podman-ansible)
+* An editor like [Vim](https://www.vim.org/), VSCode or Pycharm
+* Curiosity! 
 
-On your Grafana installation, do the following:
+Let's dive in then on how to connect our Ansible inventory file with Grafana.
+
+## Choosing a JSON datasource: Pick your poison
+
+There are several choices for the JSON datasource, I will mention 3 of them and why I choose one:
+
+### [grafana simple json](https://grafana.com/grafana/plugins/grafana-simple-json-datasource/)
+It is the official plugin ... [and it is deprecated](https://github.com/grafana/simple-json-datasource) (last update at least 16 months ago on github). Stay away from it.
+
+### [simpod-json-datasource](https://grafana.com/grafana/plugins/simpod-json-datasource/) 
+
+Plugin is very complete and easy to use, documentation is also well writen and is actively maintained.
+
+But I decided against it for the following reasons:
+* It will force you to generate the JSON with a well-defined structure that is understood by the plugin; this is not an issue for our demonstration, as we will craft the resulting JSON from scratch but if you have an existing web service exporting a JSON this is less than convenient.
+* The endpoint that shows the data ('/query') requires you to use the POST method (so you can pass search arguments). Not a big deal, but you feel more at home using GET with query arguments you are out of luck.
+
+### [JSON API](https://grafana.com/grafana/plugins/marcusolsson-json-datasource)
+
+It is my favorite because:
+* You can use an existing REST endpoint and get the fields you want using JSONPath expressions; You can define alias to the retrieved values
+* Well documented and maintained
+* Installation is very easy.
+
+On your Grafana installation, do the following to get JSON API installed:
 
 ```shell
 podman exec --interactive --tty grafana /bin/bash
-I have no name!@ae23d7e1123e:/usr/share/grafana$ grafana-cli plugins install simpod-json-datasource
-✔ Downloaded simpod-json-datasource v0.4.2 zip successfully
-
+I have no name!@ae23d7e1123e:grafana-cli plugins install marcusolsson-json-datasource
+✔ Downloaded marcusolsson-json-datasource v1.3.1 zip successfully
 Please restart Grafana after installing plugins. Refer to Grafana documentation for instructions if necessary.
 exit
 podman restart grafana
@@ -122,28 +153,56 @@ Now Grafana is ready to pull data in JSON format, which we will use to customize
 
 ## Working in reverse: Defining how our REST-API will look like using a Mock.
 
-Before start coding, we should get an idea how our API should look like, so it can be consumed by the simpod-json-datasource plugin; First, after [reading the documentation](https://github.com/simPod/GrafanaJsonDatasource)
-we know the following 3 endpoints must exist:
+Before start coding, we should get an idea how our API should look like, so it can be consumed by the JSON API plugin; The following must be true:
 
 1. GET / with 200 status code response. Used for "Test connection" on the datasource config page.
-2. POST /search to return available metrics.
-3. POST /query to return panel data or annotations.
-
-And for completeness, we will also implement the following:
-
-4. POST /variable to return data for Variable of type Query.
-5. POST /tag-keys returning tag keys for ad hoc filters.
-6. POST /tag-values returning tag values for ad hoc filters.
-
-But it gets better, as the project also made an [OpenAPI definition](https://github.com/simPod/GrafanaJsonDatasource/blob/0.3.x/openapi.yaml) we can use.
+2. GET /search?filter=group. We will use this to filter servers by group
+3. GET /query to return the list of all the available groups we can use when searching by group
 
 So before we got and start writing any code to serve our Ansible inventory file contents, let's see put together some fake data with our Grafana datasource.
 
-### Using Mockoon CLI
+## Faking it until it works, using Mockoon GUI
 
-The [Mockoon cli](https://mockoon.com/cli/) promises to make this very easy for us, specially if it can import an OpenAPI file; this will make it very easy to see how the structure of each of the JSON endpoints look like.
+The definition of a mock is:
+> To mimic or resemble closely.
 
-For our demonstration, we will use a podman container (which is also a very convenient way to run mockoon):
+And that is exactly what we will do, we will create a fake REST webservice with a JSON good enough we can connect to Grafana to simulate our web service; Once we are satisfied with the results we will then invest time writing our real REST endpoint.
+
+Let's install and run the Mockoon GUI:
+```shell
+
+[josevnz@dmaf5 grafana]$ sudo dnf install -y https://github.com/mockoon/mockoon/releases/download/v1.20.0/mockoon-1.20.0.rpm
+...
+Installed:
+  mockoon-1.20.0-1.x86_64                                                                                                                                                                                                                                
+Complete!
+mockoon
+```
+It will look like something like this:
+
+![](running_mockoon_gui.png)
+
+After experimenting with the GUI and following the excellent documentation (specially the templating part) I ended creating a REST mock:
+
+-TODO IMAGE-
+
+And here is how it looks when you run queries against it using curl:
+
+-TODO ASCIINEMMA-
+
+### Quick detour: What if you wanted to use simPod JSON instead?
+
+The simPod JSON plugin comes with an OpenAPI definition you can use to get an idea what kind of JSON you will get back if you implement a REST service that follows this model; Let me show you quickly how Mockoon can work with that out of the box: 
+
+And grab a copy of the OpenAPI for the JSON datasource:
+```shell
+[josevnz@dmaf5 Dashboards]$ curl --remote-name --location --fail https://raw.githubusercontent.com/simPod/GrafanaJsonDatasource/0.3.x/openapi.yaml
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  8208  100  8208    0     0  59912      0 --:--:-- --:--:-- --:--:-- 59912
+```
+
+And then we serve it using [Mockoon cli](https://mockoon.com/cli/) with a podman container:
 
 ```shell
 [josevnz@dmaf5 ~]$ podman pull mockoon/cli
@@ -162,15 +221,8 @@ Storing signatures
 77fb1c05b9b7748ac6201853a0ac9f1109a043832c2a9b8e462d2c6fb3a2074c
 ```
 
-And grab a copy of the OpenAPI for the JSON datasource:
-```shell
-[josevnz@dmaf5 Dashboards]$ curl --remote-name --location --fail https://raw.githubusercontent.com/simPod/GrafanaJsonDatasource/0.3.x/openapi.yaml
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-100  8208  100  8208    0     0  59912      0 --:--:-- --:--:-- --:--:-- 59912
-```
+And run it:
 
-And then we serve it using Mockoon:
 ```shell
 [josevnz@dmaf5 Dashboards]$ podman run --name fake_json --detach --mount type=bind,source=$PWD/openapi.yaml,target=/data,readonly --publish 3000:3000 mockoon/cli:latest --data data --port 3000
 5213f01c80e0efe6f6df571fcd69d9f15aeb3fbec7b933a54ce2597d5d331ee8
@@ -178,40 +230,23 @@ And then we serve it using Mockoon:
 {"level":"info","message":"Server started on port 3000","mockName":"mockoon-simpod-json-datasource-api","timestamp":"2022-09-01T23:04:12.234Z"}
 ```
 
-So what kind of data we can get back for each one of the endpoints? Let's exercise it with curl getting the required endpoints:
+So what kind of data we can get back for each one of the endpoints? Let's exercise it with [curl](https://curl.se/) getting the required endpoints:
 
 [![asciicast](https://asciinema.org/a/518450.svg)](https://asciinema.org/a/518450)
 
 Note than _the mock is returning static responses as expected_, so the payload passed to the POST method (--data) it is meaningless.
 
-
-Next step is to add our new datasource in Grafana:
+Next step is to add our new mock datasource in Grafana:
 
 ![](fake_datasource.png)
 
-
 Now that we know how the data should look like, we can create fake responses that look more like our Ansible inventory file contents.
 
-For now stop the mockoon/cli container:
+For now stop the mockoon/cli container, as we will not use it anymore and will focus on the real Webservice instead:
 ```shell
 podman stop fake_json
 ```
 
-## Faking it until it works, using Mockoon GUI
+## Getting real: Writing a REST webservice using FastAPI and Python.
 
-Let's install and run the mockoon GUI:
-```shell
-
-[josevnz@dmaf5 grafana]$ sudo dnf install -y https://github.com/mockoon/mockoon/releases/download/v1.20.0/mockoon-1.20.0.rpm
-...
-Installed:
-  mockoon-1.20.0-1.x86_64                                                                                                                                                                                                                                
-
-Complete!
-mockoon
-```
-It will look like something like this:
-
-![](running_mockoon_gui.png)
-
-After experimenting with the GUI and following the excellent documentation (specially the templating part) I ended creating a Mockoon REST mock. 
+-TODO FASTAPI-
