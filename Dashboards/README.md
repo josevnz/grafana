@@ -107,11 +107,13 @@ By the time you are done reading this tutorial you will have learned about the f
 * Connect the mock REST API with Grafana to populate missing values on a Panel that uses Prometheus data for monitoring
 * And finally writing a simple webservice to provide to static host inventory file through a REST endpoint to Grafana. 
 
-What you will need for this tutorial:
+**What you will need for this tutorial**:
 * A basic knowledge of [Ansible inventories](https://www.redhat.com/sysadmin/ansible-dynamic-inventories) (not require but never hurts)
 * A Fedora or RPM based distribution, with elevated privileges (like [SUDO](https://www.sudo.ws/))
-* A working [Podman](https://docs.podman.io/en/latest/index.html) [installation](https://www.redhat.com/sysadmin/automate-podman-ansible)
-* An editor like [Vim](https://www.vim.org/), VSCode or Pycharm
+* Working [Podman](https://docs.podman.io/en/latest/index.html) [installation](https://www.redhat.com/sysadmin/automate-podman-ansible)
+* Working Grafana. Installation [is described in detail](https://grafana.com/docs/grafana/latest/setup-grafana/installation/) on the vendor website.
+* One or more nodes running [the prometheus node exporter](https://prometheus.io/docs/guides/node-exporter/). I will show you how to connect a [prometheus data source](https://grafana.com/docs/grafana/latest/datasources/prometheus/), but in reality you can do this integration with any other [Grafana datasource](https://grafana.com/docs/grafana/latest/datasources/).
+* An editor like [Vim](https://www.vim.org/), VSCode or Pycharm to make changes to the templates included in the [source code for this tutorial](https://github.com/josevnz/grafana).
 * Curiosity! 
 
 Let's dive in then on how to connect our Ansible inventory file with Grafana.
@@ -182,13 +184,18 @@ It will look like something like this:
 
 ![](running_mockoon_gui.png)
 
-After experimenting with the GUI and following the excellent documentation (specially the templating part) I ended creating a REST mock:
+After experimenting with the GUI and following the documentation, I ended creating a REST mock:
 
--TODO IMAGE-
+![](mockoon_ansible.png)
 
-And here is how it looks when you run queries against it using curl:
+Unsurprisingly looks a lot like our Ansible inventory file converted to JSON format, and that is the whole point for our exercise.
 
--TODO ASCIINEMMA-
+Here is how it looks when you run queries against it using curl:
+
+[![asciicast](https://asciinema.org/a/519103.svg)](https://asciinema.org/a/519103)
+
+
+Next step is to construct our Dashboard with data coming from Prometheus;
 
 ### Quick detour: What if you wanted to use simPod JSON instead?
 
