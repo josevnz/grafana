@@ -192,10 +192,35 @@ Unsurprisingly looks a lot like our Ansible inventory file converted to JSON for
 
 Here is how it looks when you run queries against it using curl:
 
-[![asciicast](https://asciinema.org/a/519103.svg)](https://asciinema.org/a/519103)
+[![asciicast](https://asciinema.org/a/519126.svg)](https://asciinema.org/a/519126)
+
+Next step is to construct our Dashboard with data coming from Prometheus; First create a new datasource using JSON API:
+
+![](json_api_datasource_mock.png)
+
+And next create a [Dashboard](https://grafana.com/docs/grafana/latest/dashboards/); For our example we will monitor available RAM in Kbytes over time:
+
+![](available_memory_kbytes.png)
+
+Now is time to add a variable that will hold the groups and the hosts; Also if you noticed we will have to 'enrich' the name of the machine
+a little to match the label used by the prometheus node (hint: A tool like [jsonpath.com](http://jsonpath.com/) will help you to make sure your JSONPath expression is correct, I found the inline editor to be 'picky' sometimes).
+
+We need 2 [query variables](https://grafana.com/docs/grafana/latest/variables/variable-types/add-query-variable/), let's see the expressions first:
+
+1. Get the list of all the groups: ```json $.all.children[*]```, it will return something like ```json ["linux", "osx", "pi", "ungrouped", "windows" ]```. Say we save a single result, like the first group, on a variable called 'group'
+2. Then using that group (assume we are using 'linux') we can query next the list of hosts; For example to get all the linux machines: ```json $.linux.hosts[*]``` will give you something like ```json [ "dmaf5", "mac-pro-1-1", "macmini2", "raspberrypi"]```
+3. But we need to make the group generic. Again, we use the Grafana variables and the JSONPath becomes: ```json $.linux.${group}[*]```
+4. This will give us the list of hosts by group.
+
+If you notice, Prometheus returns either a job (node-exporter) or an instance (raspberrypi:9100) for a given host; We can enrich our host list to make it look like a Prometheus instance by passing an extra argument to our query (enrich=true) so returned host looks like this: ```raspberrypi:9100``` instead of ```raspberrypi```.
+
+Here is a screenshot of the first variable definition:
 
 
-Next step is to construct our Dashboard with data coming from Prometheus;
+And the second variable:
+
+
+
 
 ### Quick detour: What if you wanted to use simPod JSON instead?
 

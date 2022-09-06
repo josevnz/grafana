@@ -40,7 +40,7 @@
       "responses": [
         {
           "uuid": "1f05c90a-d446-4ef1-8794-208e077799bc",
-          "body": "    \"all\": {\n        \"children\": [\n            \"linux\",\n            \"osx\",\n            \"pi\",\n            \"ungrouped\",\n            \"windows\"\n        ]\n    }",
+          "body": "{    \n  \"all\": {\n        \"children\": [\n            \"linux\",\n            \"osx\",\n            \"pi\",\n            \"ungrouped\",\n            \"windows\"\n        ]\n    }\n}",
           "latency": 0,
           "statusCode": 200,
           "label": "",
@@ -65,7 +65,32 @@
       "responses": [
         {
           "uuid": "9f835b9e-19a7-4292-8710-bb9202d77d0f",
-          "body": "    \"linux\": {\n        \"hosts\": [\n            \"dmaf5\",\n            \"mac-pro-1-1\",\n            \"macmini2\",\n            \"raspberrypi\"\n        ]\n    }",
+          "body": "{\n    \"linux\": {\n        \"hosts\": [\n            \"dmaf5\",\n            \"mac-pro-1-1\",\n            \"macmini2\",\n            \"raspberrypi\"\n        ]\n    }\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true
+        }
+      ],
+      "enabled": true,
+      "responseMode": null
+    },
+    {
+      "uuid": "f0682b2e-5a98-4079-92b9-f6284d5f82d8",
+      "documentation": "",
+      "method": "get",
+      "endpoint": "query2",
+      "responses": [
+        {
+          "uuid": "2077d9ea-e697-428d-8813-68018f14f6d4",
+          "body": "{    \n  \"all\": [\n            {\"name\":\"linux\", \"time\": 1662424240},\n            {\"name\":\"osx\", \"time\": 1662424240},\n            {\"name\":\"pi\", \"time\": 1662424240},\n            {\"name\":\"ungrouped\", \"time\": 1662424240},\n            {\"name\":\"windows\", \"time\": 1662424240}\n    ]\n}",
           "latency": 0,
           "statusCode": 200,
           "label": "",
