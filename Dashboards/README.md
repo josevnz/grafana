@@ -381,3 +381,4 @@ Then on a different terminal we can quickly test the REST API:
 
 The only change we need to make now is to create a new datasource pointing to our webservice (not the one running Mockoon) and see it in action:
 
+![](grafana_prometheus_json_panel.png)
