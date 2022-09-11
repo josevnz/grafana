@@ -382,3 +382,11 @@ Then on a different terminal we can quickly test the REST API:
 The only change we need to make now is to create a new datasource pointing to our webservice (not the one running Mockoon) and see it in action:
 
 ![](grafana_prometheus_json_panel.png)
+
+# What is next?
+
+* The ability of Grafana to mix multiple datasource's to create a comprehensive view of your system is a power tool; Each [datasource](https://grafana.com/docs/grafana/latest/datasources/) offers multiple parameters to filter and transform the data, and you saw how you can combine 2 by using [variables](https://grafana.com/docs/grafana/latest/dashboards/variables/add-template-variables/)
+* FastAPI is a great tool to [create REST API](https://fastapi.tiangolo.com/tutorial/) endpoints; We didn't cover [automated testing](https://fastapi.tiangolo.com/tutorial/testing/) and this is something you should read about.
+* Mockoon offers several fancy features like '[partial proxy](https://mockoon.com/docs/latest/proxy-mode/)' (when you don't want to mock a whole service), [serve files](https://mockoon.com/docs/latest/file-serving/) as a response, etc. Worth to take a look.
+* You saw how easy is to start services with PODMAN; What if you want to coordinate the startup, like first the Ansible Webservice we just wrote and then Grafana? You can use [docker compose](https://www.redhat.com/sysadmin/podman-docker-compose) for that.
+* I used python jsonpath but did not explain its features in detail; [it is worth to add](https://pypi.org/project/jsonpath-python/) to the list of tools in your arsenal.
