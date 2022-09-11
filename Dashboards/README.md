@@ -158,8 +158,8 @@ Now Grafana is ready to pull data in JSON format, which we will use to customize
 Before start coding, we should get an idea how our API should look like, so it can be consumed by the JSON API plugin; The following must be true:
 
 1. GET / with 200 status code response. Used for "Test connection" on the datasource config page.
-2. GET /search?filter=group. We will use this to filter servers by group
-3. GET /query to return the list of all the available groups we can use when searching by group
+2. GET /search. We will use this to filter servers by group
+3. GET /query/{ansiblegroup}/ to return the list of all the available groups we can use when searching by group
 
 So before we got and start writing any code to serve our Ansible inventory file contents, let's see put together some fake data with our Grafana datasource.
 
