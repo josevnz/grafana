@@ -12,6 +12,7 @@ from fastapi import FastAPI
 app = FastAPI()
 inventory_data: Dict[str, Any] = {}
 inventory_file = os.getenv('DASHBOARD_INVENTORY_FILE', Path.cwd().joinpath('hosts.yaml'))
+PROMETHEUS_PORT = 9100
 
 
 @app.on_event("startup")
@@ -35,14 +36,31 @@ async def search():
     return groups
 
 
+@app.get("/query")
+async def default_query(enrich: bool = True):
+    """
+    This default endpoint is here to make it easier to test with Grafana if a group is not provided
+    :param enrich:
+    :return:
+    """
+    hosts = []
+    for group in inventory_data['all']['children']:
+        for host_data in inventory_data['all']['children'][group]['hosts']:
+            if enrich:
+                hosts.append(f"{host_data}:{PROMETHEUS_PORT}")
+            else:
+                hosts.append(host_data)
+    hosts.sort(reverse=True)
+    return hosts
+
+
 @app.get("/query/{group}")
-async def query(group: str):
+async def query(group: str, enrich: bool = True):
     hosts = []
     if group in inventory_data['all']['children']:
         for host_data in inventory_data['all']['children'][group]['hosts']:
-            if isinstance(host_data, list):
-                for host in host_data:
-                    hosts.append(host)
+            if enrich:
+                hosts.append(f"{host_data}:{PROMETHEUS_PORT}")
             else:
                 hosts.append(host_data)
         hosts.sort(reverse=True)

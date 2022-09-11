@@ -377,3 +377,7 @@ uvicorn --host 0.0.0.0 --reload --reload-include '*.yaml' inventory.main:app
 
 Then on a different terminal we can quickly test the REST API:
 
+[![asciicast](https://asciinema.org/a/520316.svg)](https://asciinema.org/a/520316)
+
+The only change we need to make now is to create a new datasource pointing to our webservice (not the one running Mockoon) and see it in action:
+
