@@ -1,4 +1,4 @@
-# Customizing Grafana Dashboards using variables with simpod-json-datasource, Mockoon, FastApi and Prometheus
+# Customizing Grafana Dashboards using variables with custom JSON DataSource, Mockoon, FastApi and Prometheus
 
 You probably know that Grafana has excellent integration with Prometheus exporter; In fact, it comes with several pre-built dashboards that can collect all types of metrics that can be displayed.
 
