@@ -198,7 +198,7 @@ Next step is to construct our Dashboard with data coming from Prometheus; First 
 
 ![](json_api_datasource_mock.png)
 
-And next create a [Dashboard](https://grafana.com/docs/grafana/latest/dashboards/); For our example we will monitor available RAM in Kbytes over time:
+And next create a [Dashboard](https://grafana.com/docs/grafana/latest/dashboards/); For our example we will monitor available RAM in K bytes over time:
 
 ![](available_memory_kbytes.png)
 
@@ -207,20 +207,101 @@ a little to match the label used by the prometheus node (hint: A tool like [json
 
 We need 2 [query variables](https://grafana.com/docs/grafana/latest/variables/variable-types/add-query-variable/), let's see the expressions first:
 
-1. Get the list of all the groups: ```json $.all.children[*]```, it will return something like ```json ["linux", "osx", "pi", "ungrouped", "windows" ]```. Say we save a single result, like the first group, on a variable called 'group'
+1. Get the list of all the groups: ```jsonpath $.all.children[*]```, it will return something like ```json ["linux", "osx", "pi", "ungrouped", "windows" ]```. Say we save a single result, like the first group, on a variable called 'group'
 2. Then using that group (assume we are using 'linux') we can query next the list of hosts; For example to get all the linux machines: ```json $.linux.hosts[*]``` will give you something like ```json [ "dmaf5", "mac-pro-1-1", "macmini2", "raspberrypi"]```
 3. But we need to make the group generic. Again, we use the Grafana variables and the JSONPath becomes: ```json $.linux.${group}[*]```
 4. This will give us the list of hosts by group.
 
 If you notice, Prometheus returns either a job (node-exporter) or an instance (raspberrypi:9100) for a given host; We can enrich our host list to make it look like a Prometheus instance by passing an extra argument to our query (enrich=true) so returned host looks like this: ```raspberrypi:9100``` instead of ```raspberrypi```.
 
-Here is a screenshot of the first variable definition:
+### Not so fast: I'm not getting any data for my variable!
 
+We try to get the list of all the available groups in our inventory from a JSON fragment like this:
 
-And the second variable:
+```json
+{    
+  "all": {
+        "children": [
+            "linux",
+            "osx",
+            "pi",
+            "ungrouped",
+            "windows"
+        ]
+    }
+}
+```
 
+![](grafana-empty_query.png)
 
+But then, to our dismay we find out than the variable creation doesn't work due some weird bug involving parsing the nested "children" tag.
 
+The JSON path I tried actually renders the array like results I'm looking for, so what is going on here (I'm using the Python jsonpath module to illustrate)?
+
+```shell
+(inventory) [josevnz@dmaf5 Dashboards]$ python
+Python 3.9.9 (main, Nov 19 2021, 00:00:00) 
+[GCC 10.3.1 20210422 (Red Hat 10.3.1-1)] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> from jsonpath import JSONPath
+>>> import json
+>>> data=json.loads('''{    
+...   "all": {
+...         "children": [
+...             "linux",
+...             "osx",
+...             "pi",
+...             "ungrouped",
+...             "windows"
+...         ]
+...     }
+... }''')
+>>> query="$.all.children[*]"
+>>> JSONPath(query).parse(data)
+['linux', 'osx', 'pi', 'ungrouped', 'windows']
+```
+
+I suspect it is a bug on the plugin; To prove it, I will change the structure returned with Mockoon to remove the un-necessary "children" tag
+
+```json
+{    
+  "all": [
+            "linux",
+            "osx",
+            "pi",
+            "ungrouped",
+            "windows"
+        ]
+}
+```
+
+Then if we try again from Grafana we can see than the structure is now parsed properly
+
+![](grafana_valid_groups_query.png)
+
+Now you can see the power of working with a Mock REST API for rapid prototyping.
+
+Once we have the group we can write a more intuitive REST endpoint that uses the group we selected on the previous step; For example if we call ```/query/linux``` we could get:
+
+```json
+[ "dmaf5:9100", "mac-pro-1-1:9100", "macmini2:9100", "raspberrypi:9100" ]
+```
+
+Our second variable path looks like this (Using the variable $group in the path expression ```/query${group}```):
+
+![](grafana_query_with_group_variable.png)
+
+And the fields get as simple as ```$.[*]```
+
+![](grafana_instance_variable_fields.png)
+
+At the end this is how the 2 variables will look like:
+
+![](grafana-2-variables-definition.png)
+
+Now that we know what we want, we can focus on writing a web service with the required REST endpoints.
+
+Before we do that, I want to show you real quick the other JSON plugin with Grafana and another Mockoon tool you may use. 
 
 ### Quick detour: What if you wanted to use simPod JSON instead?
 
@@ -281,4 +362,18 @@ podman stop fake_json
 
 ## Getting real: Writing a REST webservice using FastAPI and Python.
 
--TODO FASTAPI-
+If you clone the project then you can set it up to run the webservice like this (I pass the --reload-include '*.yaml' to restart the application if the inventory file changes too, not just the application):
+
+```shell
+sudo dnf install -y python3-pyyaml
+python3 -m venv --system-site-packages ~/virtualenv/inventory
+. ~/virtualenv/inventory/bin/activate
+pip install --upgrade pip
+pip install --upgrade build
+pip install --upgrade wheel
+pip install --editable .
+uvicorn --host 0.0.0.0 --reload --reload-include '*.yaml' inventory.main:app
+```
+
+Then on a different terminal we can quickly test the REST API:
+

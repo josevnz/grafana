@@ -17,11 +17,12 @@ all:
         description: Windows Desktops/ laptops for the Nunez Barrios family
     osx:
       hosts:
-        veronicalaptop
+        veronicalaptop:
+        joselaptop:
       vars:
         description: OSX Desktops/ laptops for the Nunez Barrios family
     pi:
       hosts:
-        raspberrypi
+        raspberrypi:
       vars:
         description: Raspberry PI 4 servers for Nunez Barrios family
