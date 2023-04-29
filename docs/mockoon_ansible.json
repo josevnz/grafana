@@ -1,0 +1,117 @@
+{
+  "uuid": "7fd0cc84-9635-4c45-95eb-338c8c68f3c2",
+  "lastMigration": 22,
+  "name": "Mockoon ansible",
+  "endpointPrefix": "",
+  "latency": 0,
+  "port": 3001,
+  "hostname": "0.0.0.0",
+  "routes": [
+    {
+      "uuid": "5391fc39-18bd-46a8-8df9-527362fdd600",
+      "documentation": "",
+      "method": "get",
+      "endpoint": "",
+      "responses": [
+        {
+          "uuid": "711f61ca-50c3-4ca2-84eb-03be07f9668d",
+          "body": "{}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true
+        }
+      ],
+      "enabled": true,
+      "responseMode": null
+    },
+    {
+      "uuid": "854d7ddd-9b00-4e07-8abb-a536c2b53e1b",
+      "documentation": "Return possible values for the query. Used in Grafana variables for example",
+      "method": "get",
+      "endpoint": "search",
+      "responses": [
+        {
+          "uuid": "1f05c90a-d446-4ef1-8794-208e077799bc",
+          "body": "{    \n  \"all\": [\n            \"linux\",\n            \"osx\",\n            \"pi\",\n            \"ungrouped\",\n            \"windows\"\n        ]\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true
+        }
+      ],
+      "enabled": true,
+      "responseMode": null
+    },
+    {
+      "uuid": "030d053c-614c-4a9d-a9bc-9ebc6288e3d8",
+      "documentation": "Get all the hosts for a given group in the Ansible inventory file. Match is exact.",
+      "method": "get",
+      "endpoint": "query/linux",
+      "responses": [
+        {
+          "uuid": "9f835b9e-19a7-4292-8710-bb9202d77d0f",
+          "body": "[\n            \"dmaf5:9100\",\n            \"mac-pro-1-1:9100\",\n            \"macmini2:9100\",\n            \"raspberrypi:9100\"\n        ]\n",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true
+        }
+      ],
+      "enabled": true,
+      "responseMode": null
+    }
+  ],
+  "proxyMode": false,
+  "proxyHost": "",
+  "proxyRemovePrefix": false,
+  "tlsOptions": {
+    "enabled": false,
+    "type": "CERT",
+    "pfxPath": "",
+    "certPath": "",
+    "keyPath": "",
+    "caPath": "",
+    "passphrase": ""
+  },
+  "cors": true,
+  "headers": [
+    {
+      "key": "Content-Type",
+      "value": "application/json"
+    }
+  ],
+  "proxyReqHeaders": [
+    {
+      "key": "",
+      "value": ""
+    }
+  ],
+  "proxyResHeaders": [
+    {
+      "key": "",
+      "value": ""
+    }
+  ]
+}

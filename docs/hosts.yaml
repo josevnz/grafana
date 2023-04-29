@@ -1,0 +1,28 @@
+# Inventory host for a fictional network for the Nunez Barrios family
+---
+all:
+  children:
+    linux:
+      hosts:
+        macmini2:
+        raspberrypi:
+        dmaf5:
+        mac-pro-1-1:
+      vars:
+        description: Linux servers for the Nunez Barrios family
+    windows:
+      hosts:
+        windows01:
+      vars:
+        description: Windows Desktops/ laptops for the Nunez Barrios family
+    osx:
+      hosts:
+        veronicalaptop:
+        joselaptop:
+      vars:
+        description: OSX Desktops/ laptops for the Nunez Barrios family
+    pi:
+      hosts:
+        raspberrypi:
+      vars:
+        description: Raspberry PI 4 servers for Nunez Barrios family
