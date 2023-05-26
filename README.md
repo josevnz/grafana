@@ -5,5 +5,5 @@ If you spot a bug or want to make an improvement, submit a bug or better branch 
 
 ## Creating dashboards
 
-* [Dashboards and ansible](docs)
+* [Dashboards and ansible](docs/README.md)
 
